@@ -47,6 +47,30 @@ jobs:
             coverage.out
             coverage.txt
 
+  windows-test:
+    name: Windows CLI and web smoke
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test the CLI, inbox, MCP, and backup
+        run: go test ./cmd -run '^(TestBuiltBinary|TestBackup|TestRunPairBacksUp|TestRunPairStopsBeforeThePhone|TestMigrate)'
+
+      - name: Test the inbox, imports, and local transports
+        run: go test ./cmd/e2e-server ./internal/migration ./internal/storage/blob ./internal/localapi ./internal/bridgeadapters/google
+
+      - name: Test SQLite and WhatsApp session startup
+        run: |
+          go test ./internal/storage/sqlite -run '^(TestOpen|TestConcurrentOpen)'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go test ./internal/whatsapplive -run '^(TestSessionStore|TestBridgeNewInitializesSQLiteSessionStore)'
+
   go-race:
     name: Go Race
     runs-on: ubuntu-latest

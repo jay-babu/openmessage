@@ -6,7 +6,7 @@ Built on [mautrix/gmessages](https://github.com/mautrix/gmessages) (libgm) for t
 
 ## What it does
 
-- **Google Messages for Mac** — pair your Android phone and read/send SMS + RCS locally
+- **Google Messages on macOS, Linux, and Windows** — pair your Android phone and read/send SMS + RCS locally
 - **Live WhatsApp support** — link WhatsApp as a live companion device on your machine
 - **Live Signal support** — link Signal locally and keep its threads in the same inbox
 - **One local inbox** — search, route-aware threads, favorites, media, reactions, drafts, scheduled sends, and grouped contacts
@@ -18,7 +18,7 @@ Built on [mautrix/gmessages](https://github.com/mautrix/gmessages) (libgm) for t
 
 ### Prerequisites
 
-- **Go 1.22+** ([install](https://go.dev/dl/))
+- **Go 1.25+** ([install](https://go.dev/dl/))
 - **Google Messages** on your Android phone
 
 ### 1. Clone and build
@@ -28,6 +28,8 @@ git clone https://github.com/MaxGhenis/openmessage.git
 cd openmessage
 go build -o openmessage .
 ```
+
+In PowerShell on Windows, use `go build -o openmessage.exe .` and run the commands below with `.\openmessage.exe` in place of `./openmessage`. Windows release archives are named `openmessage-windows-amd64.zip` (Intel/AMD) and `openmessage-windows-arm64.zip` (Arm). Extract the archive before running the executable.
 
 ### 2. Pair with your phone
 
@@ -44,7 +46,7 @@ For the CLI on any platform:
    ```
 3. Paste the cookies, then send end-of-input: **Ctrl-D** on macOS/Linux, or **Ctrl-Z then Enter** on Windows. Tap the matching emoji in Google Messages on your phone when prompted.
 
-The CLI also accepts a JSON object of cookie names and values through stdin or `--google-file path`. Treat this input as a credential; keep it local. The session saves to `~/.local/share/openmessage/session.json` by default, or `OPENMESSAGES_DATA_DIR` when set.
+The CLI also accepts a JSON object of cookie names and values through stdin or `--google-file path`. Treat this input as a credential; keep it local. The session saves to `~/.local/share/openmessage/session.json` on macOS/Linux and `%LOCALAPPDATA%\OpenMessage\session.json` on Windows. Set `OPENMESSAGES_DATA_DIR` to use a different private directory.
 
 On **macOS**, you can instead read cookies from a signed-in Chrome profile:
 
@@ -61,7 +63,7 @@ The native macOS app offers Google sign-in and an advanced cookie-paste method. 
 ./openmessage serve
 ```
 
-This starts the **Web UI** at [http://127.0.0.1:7007](http://127.0.0.1:7007). A bare `serve` is web-only.
+This starts the **Web UI** at [http://127.0.0.1:7007](http://127.0.0.1:7007). A bare `serve` is web-only. On Windows, you can install the inbox as a web app from a compatible browser such as Edge or Chrome.
 
 MCP transports require an explicit opt-in:
 
@@ -71,7 +73,7 @@ MCP transports require an explicit opt-in:
 
 ### 3a. Optional: link WhatsApp or Signal
 
-After `serve` is running, open the local UI and link WhatsApp or Signal from the Connections surface. OpenMessage keeps those bridges local and syncs them into the same inbox as Google Messages.
+After `serve` is running, open the local UI and link WhatsApp or Signal from the Connections surface. OpenMessage keeps those bridges local and syncs them into the same inbox as Google Messages. Live Signal linking requires macOS or Linux.
 
 ### 3b. Safe demo mode for screenshots and recordings
 
@@ -206,7 +208,7 @@ The macOS app target lives under `OpenMessage/`.
 
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `OPENMESSAGES_DATA_DIR` | `~/.local/share/openmessage` | Data directory (DB + session) |
+| `OPENMESSAGES_DATA_DIR` | `~/.local/share/openmessage` or `%LOCALAPPDATA%\OpenMessage` on Windows | Data directory (DB + session) |
 | `OPENMESSAGES_LOG_LEVEL` | `info` | Log level (debug/info/warn/error/trace) |
 | `OPENMESSAGES_PORT` | `7007` | Web UI port |
 | `OPENMESSAGES_HOST` | `127.0.0.1` | Host/interface to bind the local web server to |

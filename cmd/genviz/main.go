@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/maxghenis/openmessage/internal/app"
 	"github.com/maxghenis/openmessage/internal/db"
 	"github.com/maxghenis/openmessage/internal/story"
 	"github.com/maxghenis/openmessage/internal/viz"
@@ -39,12 +41,7 @@ func main() {
 	}
 
 	// Open the database
-	dataDir := os.Getenv("OPENMESSAGES_DATA_DIR")
-	if dataDir == "" {
-		home, _ := os.UserHomeDir()
-		dataDir = home + "/.local/share/openmessage"
-	}
-	dbPath := dataDir + "/messages.db"
+	dbPath := filepath.Join(app.DefaultDataDir(), "messages.db")
 
 	store, err := db.New(dbPath)
 	if err != nil {

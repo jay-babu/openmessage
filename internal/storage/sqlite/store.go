@@ -28,6 +28,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/maxghenis/openmessage/internal/sqliteuri"
 	_ "modernc.org/sqlite"
 )
 
@@ -98,11 +99,6 @@ func (s *Store) StoreInstanceID() (string, error) {
 }
 
 func storeDSN(path string) string {
-	normalizedPath := strings.ReplaceAll(path, `\`, "/")
-	if isWindowsAbsolutePath(normalizedPath) {
-		normalizedPath = "/" + normalizedPath
-	}
-
 	query := make(url.Values)
 	query.Add("_pragma", fmt.Sprintf("busy_timeout(%d)", busyTimeoutMS))
 	query.Add("_pragma", "foreign_keys(ON)")
@@ -112,11 +108,7 @@ func storeDSN(path string) string {
 	// after acquiring SQLite's write reservation.
 	query.Set("_txlock", "immediate")
 
-	return (&url.URL{
-		Scheme:   "file",
-		Path:     normalizedPath,
-		RawQuery: query.Encode(),
-	}).String()
+	return sqliteuri.File(path, query.Encode())
 }
 
 func enableWAL(ctx context.Context, db *sql.DB) error {
@@ -128,15 +120,6 @@ func enableWAL(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("set sqlite journal mode to WAL: got %q", journalMode)
 	}
 	return nil
-}
-
-func isWindowsAbsolutePath(path string) bool {
-	if len(path) < 3 {
-		return false
-	}
-	drive := path[0]
-	return ((drive >= 'a' && drive <= 'z') || (drive >= 'A' && drive <= 'Z')) &&
-		path[1] == ':' && path[2] == '/'
 }
 
 func verifyConnectionPragmas(ctx context.Context, db *sql.DB) error {

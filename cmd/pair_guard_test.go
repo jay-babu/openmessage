@@ -536,7 +536,7 @@ func assertFile(t *testing.T, path string, want []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
+	if runtime.GOOS != "windows" && info.Mode().Perm() != 0o600 {
 		t.Fatalf("%s mode %v, want 0600", path, info.Mode().Perm())
 	}
 }
@@ -697,12 +697,10 @@ func TestRunPairBacksUpTheSessionBeforeAskingThePhone(t *testing.T) {
 }
 
 func TestRunPairStopsBeforeThePhoneWhenTheSessionCannotBeBackedUp(t *testing.T) {
-	if os.Geteuid() == 0 {
-		t.Skip("root reads mode-000 files")
-	}
 	h := newRunPairHarness(t)
 	sessionPath := filepath.Join(h.dataDir, "session.json")
-	if err := os.WriteFile(sessionPath, []byte(`{"old":true}`), 0o000); err != nil {
+	// A directory at the session path makes the backup read fail on every OS.
+	if err := os.Mkdir(sessionPath, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	_, err := h.runGoogle(t)

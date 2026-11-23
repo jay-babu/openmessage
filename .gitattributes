@@ -1,0 +1,2 @@
+# SQLite migration checksums are calculated from the embedded file bytes.
+internal/storage/sqlite/migrations/*.sql text eol=lf

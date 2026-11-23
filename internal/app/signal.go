@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/maxghenis/openmessage/internal/db"
 	"github.com/maxghenis/openmessage/internal/signallive"
@@ -13,6 +14,10 @@ func (a *App) ensureSignal() (*signallive.Bridge, error) {
 
 	if a.Signal != nil {
 		return a.Signal, nil
+	}
+
+	if runtime.GOOS == "windows" {
+		return nil, fmt.Errorf("live Signal linking is unavailable on Windows")
 	}
 
 	bridge, err := signallive.New(a.SignalConfigPath, a.Store, a.Logger, signallive.Callbacks{
@@ -50,7 +55,9 @@ func (a *App) GetSignal() *signallive.Bridge {
 func (a *App) SignalStatus() signallive.StatusSnapshot {
 	bridge, err := a.ensureSignal()
 	if err != nil {
-		a.Logger.Warn().Err(err).Msg("Failed to initialize Signal bridge for status")
+		if runtime.GOOS != "windows" {
+			a.Logger.Warn().Err(err).Msg("Failed to initialize Signal bridge for status")
+		}
 		return signallive.StatusSnapshot{LastError: err.Error()}
 	}
 	return bridge.Status()

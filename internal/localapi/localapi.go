@@ -613,7 +613,7 @@ func (c *Client) attachmentHTTP() *http.Client {
 // IsConnectionRefused reports whether err means nothing was listening, so a
 // request certainly did not reach the daemon.
 func IsConnectionRefused(err error) bool {
-	return errors.Is(err, syscall.ECONNREFUSED)
+	return errors.Is(err, syscall.ECONNREFUSED) || isWindowsConnectionRefused(err)
 }
 
 func (c *Client) postJSON(ctx context.Context, path string, payload any, target any) error {

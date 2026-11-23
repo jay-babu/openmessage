@@ -12,7 +12,6 @@ import (
 	"io"
 	"mime"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -32,6 +31,7 @@ import (
 	"rsc.io/qr"
 
 	"github.com/maxghenis/openmessage/internal/db"
+	"github.com/maxghenis/openmessage/internal/sqliteuri"
 	"github.com/maxghenis/openmessage/internal/whatsappmedia"
 )
 
@@ -507,25 +507,7 @@ func sessionStoreReadOnlyDSN(path string) string {
 }
 
 func sessionStoreDSNWithQuery(path string, rawQuery string) string {
-	normalizedPath := strings.ReplaceAll(path, "\\", "/")
-	if isWindowsAbsolutePath(normalizedPath) {
-		normalizedPath = "/" + normalizedPath
-	}
-	return (&url.URL{
-		Scheme:   "file",
-		Path:     normalizedPath,
-		RawQuery: rawQuery,
-	}).String()
-}
-
-func isWindowsAbsolutePath(path string) bool {
-	if len(path) < 3 {
-		return false
-	}
-	drive := path[0]
-	return ((drive >= 'a' && drive <= 'z') || (drive >= 'A' && drive <= 'Z')) &&
-		path[1] == ':' &&
-		path[2] == '/'
+	return sqliteuri.File(path, rawQuery)
 }
 
 // TemporaryBanDeadline returns the greatest absolute ban deadline observed by

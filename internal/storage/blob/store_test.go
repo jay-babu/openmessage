@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -52,7 +53,7 @@ func TestPutAllowsExactLimitAndOpenRoundTrips(t *testing.T) {
 	if info.Size() != int64(len(content)) {
 		t.Fatalf("Stat().Size() = %d, want %d", info.Size(), len(content))
 	}
-	if gotMode := info.Mode().Perm(); gotMode != privateFileMode {
+	if gotMode := info.Mode().Perm(); runtime.GOOS != "windows" && gotMode != privateFileMode {
 		t.Fatalf("blob mode = %04o, want %04o", gotMode, privateFileMode)
 	}
 }
@@ -321,7 +322,7 @@ func assertMode(t *testing.T, path string, want os.FileMode) {
 	if err != nil {
 		t.Fatalf("Stat(%q): %v", path, err)
 	}
-	if got := info.Mode().Perm(); got != want {
+	if got := info.Mode().Perm(); runtime.GOOS != "windows" && got != want {
 		t.Fatalf("mode(%q) = %04o, want %04o", path, got, want)
 	}
 }

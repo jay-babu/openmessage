@@ -18,6 +18,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/maxghenis/openmessage/internal/app"
+	"github.com/maxghenis/openmessage/internal/fsutil"
 	"github.com/maxghenis/openmessage/internal/migration"
 )
 
@@ -502,7 +503,7 @@ func publishStagedMigration(targetDir, tempStorePath, tempBlobPath string) (retu
 				rollbackErrs = append(rollbackErrs, fmt.Errorf("remove published blobs: %w", err))
 			}
 		}
-		if err := syncMigrationDirectory(targetDir); err != nil {
+		if err := fsutil.SyncDir(targetDir); err != nil {
 			rollbackErrs = append(rollbackErrs, fmt.Errorf("sync rollback: %w", err))
 		}
 		returnErr = errors.Join(returnErr, errors.Join(rollbackErrs...))
@@ -514,14 +515,14 @@ func publishStagedMigration(targetDir, tempStorePath, tempBlobPath string) (retu
 		return fmt.Errorf("publish blobs first: %w", err)
 	}
 	blobsPublished = true
-	if err := syncMigrationDirectory(targetDir); err != nil {
+	if err := fsutil.SyncDir(targetDir); err != nil {
 		return fmt.Errorf("sync target after publishing blobs: %w", err)
 	}
 	if err := os.Rename(tempStorePath, storePath); err != nil {
 		return fmt.Errorf("publish store database: %w", err)
 	}
 	storePublished = true
-	if err := syncMigrationDirectory(targetDir); err != nil {
+	if err := fsutil.SyncDir(targetDir); err != nil {
 		return fmt.Errorf("sync target after publishing store: %w", err)
 	}
 	return nil
@@ -547,16 +548,6 @@ func requireStagedDirectory(path string) error {
 		return fmt.Errorf("staged blob store is not a directory: %s", path)
 	}
 	return nil
-}
-
-func syncMigrationDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	return errors.Join(syncErr, closeErr)
 }
 
 func writeHumanMigrationReport(writer io.Writer, report migration.Report) {

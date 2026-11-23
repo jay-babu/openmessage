@@ -9,7 +9,6 @@ import (
 	"net"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/maxghenis/openmessage/internal/db"
@@ -198,7 +197,7 @@ func unreachableReason(err error) string {
 	switch {
 	case errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &netErr) && netErr.Timeout()):
 		return fmt.Sprintf("the running app didn't answer within %s", clientProbeTimeout)
-	case errors.Is(err, syscall.ECONNREFUSED):
+	case localapi.IsConnectionRefused(err):
 		return "the app isn't running"
 	default:
 		return "the app couldn't be reached: " + err.Error()

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -21,6 +22,9 @@ func buildTestBinary(t *testing.T) (binary, dataDir string) {
 	t.Helper()
 	tmpDir := t.TempDir()
 	binary = filepath.Join(tmpDir, "openmessage")
+	if runtime.GOOS == "windows" {
+		binary += ".exe"
+	}
 	build := exec.Command("go", "build", "-o", binary, "..")
 	build.Dir = filepath.Join(".")
 	if out, err := build.CombinedOutput(); err != nil {
@@ -351,6 +355,11 @@ func waitForHTTP(url string, timeout time.Duration) error {
 func stopProcess(t *testing.T, cmd *exec.Cmd) {
 	t.Helper()
 	if cmd.Process == nil {
+		return
+	}
+	if runtime.GOOS == "windows" {
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 		return
 	}
 	_ = cmd.Process.Signal(os.Interrupt)

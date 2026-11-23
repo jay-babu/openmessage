@@ -9,12 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/maxghenis/openmessage/internal/sqliteuri"
 	_ "modernc.org/sqlite"
 )
 
@@ -588,9 +588,7 @@ func fileSHA256(path string) (string, error) {
 }
 
 func readOnlySQLiteDSN(path string) string {
-	return (&url.URL{
-		Scheme: "file", Path: filepath.ToSlash(path), RawQuery: "mode=ro",
-	}).String()
+	return sqliteuri.File(path, "mode=ro")
 }
 
 func stageLegacySourceSnapshot(

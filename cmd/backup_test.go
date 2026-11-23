@@ -532,7 +532,7 @@ func TestBackupCapturesAuxiliaryDatabaseHotWAL(t *testing.T) {
 		t.Fatalf("executeBackup: %v", err)
 	}
 
-	copyDB, err := sql.Open("sqlite", "file:"+filepath.ToSlash(filepath.Join(result.BackupPath, "whatsapp-session.db"))+"?mode=ro")
+	copyDB, err := sql.Open("sqlite", sqliteReadOnlyDSN(filepath.Join(result.BackupPath, "whatsapp-session.db")))
 	if err != nil {
 		t.Fatal(err)
 	}

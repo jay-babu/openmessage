@@ -11,8 +11,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/maxghenis/openmessage/internal/fsutil"
 )
 
 const (
@@ -137,7 +140,7 @@ func (s *BlobStore) Put(ctx context.Context, r io.Reader, declaredMIME string, m
 		return BlobRef{}, fmt.Errorf("put blob: create hash shard: %w", err)
 	}
 	// Make creation of the shard durable before publishing an entry within it.
-	if err := syncDir(s.root); err != nil {
+	if err := fsutil.SyncDir(s.root); err != nil {
 		return BlobRef{}, fmt.Errorf("put blob: sync root directory: %w", err)
 	}
 
@@ -188,12 +191,12 @@ func (s *BlobStore) Put(ctx context.Context, r io.Reader, declaredMIME string, m
 		return BlobRef{}, fmt.Errorf("put blob: remove staging directory: %w", err)
 	}
 	stageDir = ""
-	if err := syncDir(shardDir); err != nil {
+	if err := fsutil.SyncDir(shardDir); err != nil {
 		return BlobRef{}, fmt.Errorf("put blob: sync hash shard: %w", err)
 	}
 	// The staging rename removed the original temp entry from root. Sync both
 	// sides of that cross-directory rename before reporting a durable Put.
-	if err := syncDir(s.root); err != nil {
+	if err := fsutil.SyncDir(s.root); err != nil {
 		return BlobRef{}, fmt.Errorf("put blob: sync root directory after publish: %w", err)
 	}
 
@@ -276,7 +279,7 @@ func (s *BlobStore) Delete(ref BlobRef) error {
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("delete blob: %w", err)
 	}
-	if err := syncDir(filepath.Dir(path)); err != nil {
+	if err := fsutil.SyncDir(filepath.Dir(path)); err != nil {
 		return fmt.Errorf("delete blob: sync hash shard: %w", err)
 	}
 	return nil
@@ -329,7 +332,7 @@ func validateExistingBlob(path string, expectedSize int64) error {
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("hash path is not a regular file")
 	}
-	if info.Mode().Perm() != privateFileMode {
+	if runtime.GOOS != "windows" && info.Mode().Perm() != privateFileMode {
 		return fmt.Errorf("hash path mode is %04o, want %04o", info.Mode().Perm(), privateFileMode)
 	}
 	if info.Size() != expectedSize {
@@ -388,13 +391,4 @@ func copyCapped(ctx context.Context, dst io.Writer, src io.Reader, max int64) (i
 			return written, readErr
 		}
 	}
-}
-
-func syncDir(path string) error {
-	dir, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer dir.Close()
-	return dir.Sync()
 }
