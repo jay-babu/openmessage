@@ -46,13 +46,14 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          version="${GITHUB_REF_NAME:-${{ inputs.tag }}}"
+          version="${RELEASE_TAG:-${GITHUB_REF_NAME}}"
           mkdir -p dist
           archive="openmessage-${GOOS}-${GOARCH}"
           if [ "$GOOS" = windows ]; then
-            go build -trimpath -ldflags "-s -w -X main.version=${version}" -o dist/openmessage.exe .
-            zip -j "${archive}.zip" dist/openmessage.exe
+            python3 windows/build.py --version "$version" --output dist
+            (cd dist && zip -r "../${archive}.zip" .)
           else
             go build -trimpath -ldflags "-s -w -X main.version=${version}" -o dist/openmessage .
             tar -C dist -czf "${archive}.tar.gz" openmessage

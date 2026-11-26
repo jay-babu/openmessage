@@ -30,8 +30,9 @@ import (
 type pairMode string
 
 const (
-	pairModeGoogle       pairMode = "google"
-	pairModeGoogleChrome pairMode = "google-chrome"
+	pairModeGoogle        pairMode = "google"
+	pairModeGoogleChrome  pairMode = "google-chrome"
+	pairModeGoogleBrowser pairMode = "google-browser"
 )
 
 // pairBackendExitWait is how long pair waits for a backend that holds this
@@ -91,6 +92,11 @@ func runPair(logger zerolog.Logger, args []string, deps pairDeps) error {
 	case pairModeGoogle:
 		if cookies, err = parseGoogleCookiesInput(input); err != nil {
 			return fmt.Errorf("parse Google cookies: %w", err)
+		}
+	case pairModeGoogleBrowser:
+		cookies, err = googlecookies.LoadBrowser(dataDir)
+		if err != nil {
+			return err
 		}
 	case pairModeGoogleChrome:
 		// Read right before pairing: Google rotates these cookies, and an
@@ -349,6 +355,8 @@ func resolvePairMode(args []string) (pairMode, string, error) {
 			return "", "", fmt.Errorf("read Google cookies file: %w", err)
 		}
 		return pairModeGoogle, string(b), nil
+	case "--google-browser":
+		return pairModeGoogleBrowser, "", nil
 	case "--google-chrome":
 		if runtime.GOOS != "darwin" {
 			return "", "", fmt.Errorf("--google-chrome reads Chrome's cookies through the macOS keychain and works only on macOS; use --google-file or --google-stdin")

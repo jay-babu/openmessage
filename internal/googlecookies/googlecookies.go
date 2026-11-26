@@ -86,7 +86,7 @@ type RefreshStats struct {
 
 // RefreshWithStats is Refresh, also reporting RefreshStats.
 func RefreshWithStats(ctx context.Context, profile, sessionPath string) (RefreshStats, error) {
-	cookies, err := Load(ctx, profile)
+	cookies, err := loadForRefresh(ctx, profile, sessionPath)
 	if err != nil {
 		return RefreshStats{}, err
 	}
@@ -123,21 +123,6 @@ func sessionCookies(sessionPath string) map[string]string {
 		return nil
 	}
 	return data.AuthData.Cookies
-}
-
-// Load reads and decrypts the Google cookies of a Chrome profile with the
-// Chrome Safe Storage secret from the login keychain. It is what Refresh
-// writes into session.json and what `pair --google-chrome` pairs with.
-// Callers must never log the returned values.
-func Load(ctx context.Context, profile string) (map[string]string, error) {
-	if profile == "" {
-		return nil, fmt.Errorf("no Chrome profile directory")
-	}
-	secret, err := chromeSafeStorageSecret(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("chrome safe storage secret: %w", err)
-	}
-	return LoadChromeCookies(profile, secret)
 }
 
 // DeriveKey derives the AES-128 key Chrome uses for cookie encryption.
@@ -375,16 +360,23 @@ func UpdateSessionCookies(sessionPath string, cookies map[string]string) error {
 	if err != nil {
 		return fmt.Errorf("read session: %w", err)
 	}
-	var data map[string]any
+	var data map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return fmt.Errorf("parse session: %w", err)
 	}
-	authData, ok := data["auth_data"].(map[string]any)
-	if !ok {
-		authData = map[string]any{}
-		data["auth_data"] = authData
+	var authData map[string]json.RawMessage
+	if err := json.Unmarshal(data["auth_data"], &authData); err != nil || authData == nil {
+		return fmt.Errorf("session has no Google pairing data")
 	}
-	authData["cookies"] = cookies
+	cookieJSON, err := json.Marshal(cookies)
+	if err != nil {
+		return fmt.Errorf("encode Google cookies: %w", err)
+	}
+	authData["cookies"] = cookieJSON
+	data["auth_data"], err = json.Marshal(authData)
+	if err != nil {
+		return fmt.Errorf("encode Google pairing data: %w", err)
+	}
 
 	updated, err := json.Marshal(data)
 	if err != nil {

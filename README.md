@@ -18,7 +18,7 @@ Built on [mautrix/gmessages](https://github.com/mautrix/gmessages) (libgm) for t
 
 ### Prerequisites
 
-- **Go 1.25+** ([install](https://go.dev/dl/))
+- **Go 1.26+** ([install](https://go.dev/dl/))
 - **Google Messages** on your Android phone
 
 ### 1. Clone and build
@@ -32,6 +32,8 @@ go build -o openmessage .
 In PowerShell on Windows, use `go build -o openmessage.exe .` and run the commands below with `.\openmessage.exe` in place of `./openmessage`. Windows release archives are named `openmessage-windows-amd64.zip` (Intel/AMD) and `openmessage-windows-arm64.zip` (Arm). Extract the archive before running the executable.
 
 ### 2. Pair with your phone
+
+On Windows, [set up automatic Google login refresh in Edge](windows/browser-extension/README.md) to pair with `openmessage.exe pair --google-browser` and reconnect automatically when Google expires the login.
 
 OpenMessage uses **Google Account pairing with emoji confirmation**. QR setup is no longer supported: [Google documents that QR pairing is unavailable in the US](https://support.google.com/messages/answer/9077245?co=GENIE.Platform%3DDesktop&hl=en), and the [upstream transport retired QR login](https://github.com/mautrix/gmessages/releases/tag/v0.2605.0).
 

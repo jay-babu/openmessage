@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "OpenMessage Google Login Refresh",
+  "version": "0.1.2",
+  "description": "Keeps the locally installed OpenMessage connected to Google Messages in this browser profile.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjRlYxDGvVWBkhOYgLQlCPlGzmbT1axp7/a8V3OjBPVK6Rl8lO0kOsFCLrGC0XKoUF0dz5EJwkDe6Sin8pPxzQWpisqWJLzEEUFukCzm1asW2IXHMPLsCOsgP614Fkzf11jInWXNw/5rwZ/kflwJF7PRNjvIL6oBF+XXXlBUJHX/F5PvqmGZJeln8RDXoNuLLI68ipV50sK1BYk4yMhjM4AicgNKRCm/1CTADsCU6YleeOudntMO979dPdNvfB2eKDrP+cuDaHpwrbfgxdE3eCvXo2QTQUSl4asVISfgaB72yu/QvtOKbkwMP2Kd0AwYKEaVqEJzc37D49iJU9djMXQIDAQAB",
+  "permissions": [
+    "cookies",
+    "nativeMessaging",
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://google.com/*",
+    "https://messages.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Refresh the OpenMessage Google login"
+  }
+}

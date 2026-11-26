@@ -60,7 +60,7 @@ jobs:
           cache: true
 
       - name: Test the CLI, inbox, MCP, and backup
-        run: go test ./cmd -run '^(TestBuiltBinary|TestBackup|TestRunPairBacksUp|TestRunPairStopsBeforeThePhone|TestMigrate)'
+        run: go test ./cmd -run '^(TestBuiltBinary|TestBackup|TestRunPairBacksUp|TestRunPairStopsBeforeThePhone|TestMigrate|TestWindowsBrowserCredentialRecovery)'
 
       - name: Test the inbox, imports, and local transports
         run: go test ./cmd/e2e-server ./internal/migration ./internal/storage/blob ./internal/localapi ./internal/bridgeadapters/google

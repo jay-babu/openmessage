@@ -1120,7 +1120,7 @@ func canRefreshGoogleCookies() bool {
 	if strings.TrimSpace(os.Getenv("OPENMESSAGE_COOKIE_REFRESH_SCRIPT")) != "" {
 		return true
 	}
-	return googlecookies.NativeSupported()
+	return googlecookies.NativeSupported() || googlecookies.BrowserAvailable(app.DefaultDataDir())
 }
 
 // refreshGoogleSessionCookies rewrites the Google cookies in sessionPath. It
@@ -1150,7 +1150,7 @@ var refreshGoogleSessionCookies = func(ctx context.Context, sessionPath string) 
 		return nil
 	}
 
-	if !googlecookies.NativeSupported() {
+	if !canRefreshGoogleCookies() {
 		return nil
 	}
 	stats, err := googlecookies.RefreshWithStats(ctx, googlecookies.DefaultChromeProfile(), sessionPath)
@@ -1165,7 +1165,7 @@ var refreshGoogleSessionCookies = func(ctx context.Context, sessionPath string) 
 	zerolog.Ctx(ctx).Info().
 		Int("cookies", stats.Cookies).
 		Int("changed", stats.Changed).
-		Msg("Refreshed Google session cookies from Chrome")
+		Msg("Refreshed Google session cookies from browser")
 	return nil
 }
 
